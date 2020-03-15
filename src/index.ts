@@ -5,7 +5,8 @@ const canvas = d3.select("svg#canvas");
 const CANVAS_SIZE = 300;
 const PATIENT_COUNT = 100;
 const TICK_MAGNITUDE = 1;
-const COLLISION_DISTANCE = 3;
+const COLLISION_DISTANCE = 4;
+const INFECTION_TIME = CANVAS_SIZE / 1;
 
 const chooseCoord = d3.randomUniform(CANVAS_SIZE);
 const chooseAngle = d3.randomUniform(2 * Math.PI);
@@ -80,18 +81,18 @@ class Person {
 
     infect() {
         if (this.state === "new") {
-            this.state = "infected";
+            this.setState("infected");
         }
     }
 
     color() {
         switch (this.state) {
             case "new":
-                return "#aaf";
+                return "#82aaff";
             case "infected":
-                return "#faa";
+                return "#ff8a82";
             case "immune":
-                return "#faf";
+                return "#b082ff";
         }
     }
 
@@ -104,8 +105,11 @@ class Person {
     }
 
     update() {
-        this.timeInState++;
+        this.updateState();
+        this.updatePosition();
+    }
 
+    private updatePosition() {
         const move = this.direction.times(TICK_MAGNITUDE);
         this.position = this.position.plus(move);
 
@@ -118,6 +122,18 @@ class Person {
 
         if (this.position.y < 0 || this.position.y > CANVAS_SIZE) {
             this.direction = this.direction.reverseY();
+        }
+    }
+
+    private setState(state: "new" | "infected" | "immune") {
+        this.timeInState = 0;
+        this.state = state;
+    }
+
+    private updateState() {
+        this.timeInState++;
+        if (this.state === "infected" && this.timeInState >= INFECTION_TIME) {
+            this.setState("immune");
         }
     }
 }
@@ -164,7 +180,7 @@ function updateView() {
         .append("circle")
         .attr("cx", p => p.position.x)
         .attr("cy", p => p.position.y)
-        .attr("r", 2)
+        .attr("r", 3)
         .style("fill", p => p.color());
 
     dots.exit().remove();
