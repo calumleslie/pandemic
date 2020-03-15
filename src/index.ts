@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { Vector } from "./vector";
 
 const canvas = d3.select("svg#canvas");
 
@@ -10,58 +11,6 @@ const INFECTION_TIME = CANVAS_SIZE / 1;
 
 const chooseCoord = d3.randomUniform(CANVAS_SIZE);
 const chooseAngle = d3.randomUniform(2 * Math.PI);
-class Vector {
-    x: number;
-    y: number;
-
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    static randomCoord() {
-        return new Vector(chooseCoord(), chooseCoord());
-    }
-
-    static randomDirection() {
-        const angle = chooseAngle();
-        return new Vector(
-            Math.cos(angle),
-            Math.sin(angle));
-    }
-
-    plus(other: Vector) {
-        return new Vector(this.x + other.x, this.y + other.y);
-    }
-
-    times(factor: number) {
-        return new Vector(this.x * factor, this.y * factor);
-    }
-
-    minus(other: Vector) {
-        return new Vector(this.x - other.x, this.y - other.y);
-    }
-
-    normalize() {
-        if (this.x === 0 && this.y === 0) {
-            return this;
-        } else {
-            return this.times(1 / this.magnitude());
-        }
-    }
-
-    magnitude() {
-        return Math.sqrt((this.x * this.x) + (this.y * this.y));
-    }
-
-    reverseX() {
-        return new Vector(this.x * -1, this.y);
-    }
-
-    reverseY() {
-        return new Vector(this.x, this.y * -1);
-    }
-}
 
 enum State {
     New,
@@ -93,7 +42,9 @@ class Person {
     }
 
     static random() {
-        return new Person(Vector.randomCoord(), Vector.randomDirection());
+        return new Person(
+            new Vector(chooseCoord(), chooseCoord()),
+            Vector.unitInDirection(chooseAngle()));
     }
 
     infect() {
