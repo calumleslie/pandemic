@@ -41,6 +41,14 @@ class Vector {
         return new Vector(this.x - other.x, this.y - other.y);
     }
 
+    normalize() {
+        if (this.x === 0 && this.y === 0) {
+            return this;
+        } else {
+            return this.times(1 / this.magnitude());
+        }
+    }
+
     magnitude() {
         return Math.sqrt((this.x * this.x) + (this.y * this.y));
     }
@@ -87,6 +95,9 @@ class Person {
         }
     }
 
+    bounceOff(other: Person) {
+        this.direction = this.direction.minus(other.direction).normalize();
+    }
 
     distanceTo(other: Person) {
         return this.position.minus(other.position).magnitude();
@@ -117,6 +128,9 @@ function collide(person1: Person, person2: Person) {
         person1.infect();
         person2.infect();
     }
+
+    person1.bounceOff(person2);
+    person2.bounceOff(person1);
 }
 
 const people: Person[] = [];
