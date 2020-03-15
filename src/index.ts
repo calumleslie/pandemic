@@ -2,9 +2,10 @@ import * as d3 from "d3";
 
 const canvas = d3.select("svg#canvas");
 
-const CANVAS_SIZE = 600;
+const CANVAS_SIZE = 300;
 const PATIENT_COUNT = 100;
 const TICK_MAGNITUDE = 1;
+const COLLISION_DISTANCE = 3;
 
 const chooseCoord = d3.randomUniform(CANVAS_SIZE);
 const chooseAngle = d3.randomUniform(2 * Math.PI);
@@ -36,6 +37,14 @@ class Vector {
         return new Vector(this.x * factor, this.y * factor);
     }
 
+    minus(other: Vector) {
+        return new Vector(this.x - other.x, this.y - other.y);
+    }
+
+    magnitude() {
+        return Math.sqrt((this.x * this.x) + (this.y * this.y));
+    }
+
     reverseX() {
         return new Vector(this.x * -1, this.y);
     }
@@ -46,18 +55,25 @@ class Vector {
 }
 
 class Person {
-    state: "new" | "infected" | "immune";
+    state: "new" | "infected" | "immune" = "new";
     position: Vector;
     direction: Vector;
 
+    private timeInState = 0;
+
     constructor(position: Vector, direction: Vector) {
-        this.state = "new";
         this.position = position;
         this.direction = direction;
     }
 
     static random() {
         return new Person(Vector.randomCoord(), Vector.randomDirection());
+    }
+
+    infect() {
+        if (this.state === "new") {
+            this.state = "infected";
+        }
     }
 
     color() {
@@ -71,7 +87,14 @@ class Person {
         }
     }
 
+
+    distanceTo(other: Person) {
+        return this.position.minus(other.position).magnitude();
+    }
+
     update() {
+        this.timeInState++;
+
         const move = this.direction.times(TICK_MAGNITUDE);
         this.position = this.position.plus(move);
 
@@ -88,9 +111,31 @@ class Person {
     }
 }
 
+function collide(person1: Person, person2: Person) {
+    if (person1.state === "infected" || person2.state === "infected") {
+        // Infecting does nothing to the infected so let's just do both
+        person1.infect();
+        person2.infect();
+    }
+}
+
 const people: Person[] = [];
 for (let i = 0; i < PATIENT_COUNT; i++) {
     people.push(Person.random());
+}
+
+people[0].infect();
+
+function updatePeople() {
+    people.forEach(p => p.update());
+
+    for (let i = 0; i < people.length; i++) {
+        for (let j = i + 1; j < people.length; j++) {
+            if (people[i].distanceTo(people[j]) < COLLISION_DISTANCE) {
+                collide(people[i], people[j]);
+            }
+        }
+    }
 }
 
 function updateView() {
@@ -109,29 +154,11 @@ function updateView() {
         .style("fill", p => p.color());
 
     dots.exit().remove();
-
-    const directions = canvas
-        .selectAll("line")
-        .data(people)
-        .attr("x1", p => p.position.x)
-        .attr("y1", p => p.position.y)
-        .attr("x2", p => p.position.plus(p.direction.times(10)).x)
-        .attr("y2", p => p.position.plus(p.direction.times(10)).y);
-
-    directions.enter()
-        .append("line")
-        .attr("x1", p => p.position.x)
-        .attr("y1", p => p.position.y)
-        .attr("x2", p => p.position.plus(p.direction.times(10)).x)
-        .attr("y2", p => p.position.plus(p.direction.times(10)).y)
-        .attr("stroke", "red");
-
-    directions.exit().remove();
 }
 
 updateView();
 
 d3.timer(() => {
-    people.forEach(p => p.update());
+    updatePeople();
     updateView();
 }, 100);
