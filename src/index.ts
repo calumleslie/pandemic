@@ -4,6 +4,7 @@ const canvas = d3.select("svg#canvas");
 
 const CANVAS_SIZE = 600;
 const PATIENT_COUNT = 100;
+const TICK_MAGNITUDE = 1;
 
 const chooseCoord = d3.randomUniform(CANVAS_SIZE);
 const chooseAngle = d3.randomUniform(2 * Math.PI);
@@ -61,38 +62,56 @@ class Person {
                 return "#faf";
         }
     }
+
+    update() {
+        this.position = this.position.plus(this.direction.times(TICK_MAGNITUDE));
+    }
 }
 
-const patients = [];
+const people: Person[] = [];
 for (let i = 0; i < PATIENT_COUNT; i++) {
-    patients.push(Person.random());
+    people.push(Person.random());
 }
 
-const dots = canvas
-    .selectAll("circle")
-    .data(patients)
-    .attr("cx", p => p.position.x)
-    .attr("cy", p => p.position.y)
-    .style("fill", p => p.color());
+function updateView() {
+    const dots = canvas
+        .selectAll("circle")
+        .data(people)
+        .attr("cx", p => p.position.x)
+        .attr("cy", p => p.position.y)
+        .style("fill", p => p.color());
 
-dots.enter()
-    .append("circle")
-    .attr("cx", p => p.position.x)
-    .attr("cy", p => p.position.y)
-    .attr("r", 2)
-    .style("fill", p => p.color());
+    dots.enter()
+        .append("circle")
+        .attr("cx", p => p.position.x)
+        .attr("cy", p => p.position.y)
+        .attr("r", 2)
+        .style("fill", p => p.color());
 
-dots.exit().remove();
+    dots.exit().remove();
 
-const directions = canvas
-    .selectAll("line")
-    .data(patients);
+    const directions = canvas
+        .selectAll("line")
+        .data(people)
+        .attr("x1", p => p.position.x)
+        .attr("y1", p => p.position.y)
+        .attr("x2", p => p.position.plus(p.direction.times(10)).x)
+        .attr("y2", p => p.position.plus(p.direction.times(10)).y);
 
-directions.enter()
-    .append("line")
-    .attr("x1", p => p.position.x)
-    .attr("y1", p => p.position.y)
-    .attr("x2", p => p.position.plus(p.direction.times(10)).x)
-    .attr("y2", p => p.position.plus(p.direction.times(10)).y)
-    .attr("stroke", "red");
+    directions.enter()
+        .append("line")
+        .attr("x1", p => p.position.x)
+        .attr("y1", p => p.position.y)
+        .attr("x2", p => p.position.plus(p.direction.times(10)).x)
+        .attr("y2", p => p.position.plus(p.direction.times(10)).y)
+        .attr("stroke", "red");
 
+    directions.exit().remove();
+}
+
+updateView();
+
+d3.timer(elapsed => {
+    people.forEach(p => p.update());
+    updateView();
+}, 100);
