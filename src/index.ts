@@ -35,6 +35,14 @@ class Vector {
     times(factor: number) {
         return new Vector(this.x * factor, this.y * factor);
     }
+
+    reverseX() {
+        return new Vector(this.x * -1, this.y);
+    }
+
+    reverseY() {
+        return new Vector(this.x, this.y * -1);
+    }
 }
 
 class Person {
@@ -64,7 +72,19 @@ class Person {
     }
 
     update() {
-        this.position = this.position.plus(this.direction.times(TICK_MAGNITUDE));
+        const move = this.direction.times(TICK_MAGNITUDE);
+        this.position = this.position.plus(move);
+
+        // Bounce off the sides. I'm sure this sort of thing would
+        // horrify a game developer but we're not moving far each
+        // tick so we don't need to try hard.
+        if (this.position.x < 0 || this.position.x > CANVAS_SIZE) {
+            this.direction = this.direction.reverseX();
+        }
+
+        if (this.position.y < 0 || this.position.y > CANVAS_SIZE) {
+            this.direction = this.direction.reverseY();
+        }
     }
 }
 
@@ -111,7 +131,7 @@ function updateView() {
 
 updateView();
 
-d3.timer(elapsed => {
+d3.timer(() => {
     people.forEach(p => p.update());
     updateView();
 }, 100);
