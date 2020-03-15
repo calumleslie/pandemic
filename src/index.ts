@@ -63,8 +63,25 @@ class Vector {
     }
 }
 
+enum State {
+    New,
+    Infected,
+    Immune,
+}
+
+function stateColour(state: State) {
+    switch (state) {
+        case State.New:
+            return "#82aaff";
+        case State.Infected:
+            return "#ff8a82";
+        case State.Immune:
+            return "#b082ff";
+    }
+}
+
 class Person {
-    state: "new" | "infected" | "immune" = "new";
+    state: State = State.New;
     position: Vector;
     direction: Vector;
 
@@ -80,20 +97,13 @@ class Person {
     }
 
     infect() {
-        if (this.state === "new") {
-            this.setState("infected");
+        if (this.state === State.New) {
+            this.setState(State.Infected);
         }
     }
 
     color() {
-        switch (this.state) {
-            case "new":
-                return "#82aaff";
-            case "infected":
-                return "#ff8a82";
-            case "immune":
-                return "#b082ff";
-        }
+        return stateColour(this.state);
     }
 
     bounceOff(other: Person) {
@@ -125,21 +135,21 @@ class Person {
         }
     }
 
-    private setState(state: "new" | "infected" | "immune") {
+    private setState(state: State) {
         this.timeInState = 0;
         this.state = state;
     }
 
     private updateState() {
         this.timeInState++;
-        if (this.state === "infected" && this.timeInState >= INFECTION_TIME) {
-            this.setState("immune");
+        if (this.state === State.Infected && this.timeInState >= INFECTION_TIME) {
+            this.setState(State.Immune);
         }
     }
 }
 
 function collide(person1: Person, person2: Person) {
-    if (person1.state === "infected" || person2.state === "infected") {
+    if (person1.state === State.Infected || person2.state === State.Infected) {
         // Infecting does nothing to the infected so let's just do both
         person1.infect();
         person2.infect();
