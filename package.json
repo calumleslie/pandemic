@@ -16,5 +16,9 @@
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@types/d3": "^5.7.2",
+    "d3": "^5.15.0"
+  }
 }
