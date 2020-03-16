@@ -3,9 +3,9 @@ import { Vector } from "./vector";
 const TICK_MAGNITUDE = 1;
 
 export enum State {
-    New,
-    Infected,
-    Immune,
+    New = "new",
+    Infected = "infected",
+    Immune = "immune",
 }
 
 export function stateColour(state: State) {
