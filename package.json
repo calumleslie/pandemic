@@ -19,6 +19,6 @@
   "private": true,
   "dependencies": {
     "@types/d3": "^5.7.2",
-    "d3": "^5.15.0"
+    "d3": "^7.6.1"
   }
 }
